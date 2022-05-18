@@ -1,3 +1,10 @@
+PDef. Program ::= "300$" [Stm] ;
+
+terminator Stm "o`" ;
+
+SExp. Stm ::= Exp ;
+PExp. Stm ::= "cum" Exp ;
+
 EAdd. Exp ::= Exp "+" Exp1 ; 
 ESub. Exp ::= Exp "-" Exp1 ; 
 EMul. Exp1 ::= Exp1 "*" Exp2 ; 
