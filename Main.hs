@@ -8,9 +8,11 @@ import ErrM
 
 
 main = do 
-  interact calc
-  putStrLn ""
+  a <- getContents
+  calc a
+--   interact calc
+  -- putStrLn ""
 
-calc s = 
-  let Ok e = pExp (myLexer s)
-  in show (interpret e)
+calc s =
+  let Ok e = pProgram (myLexer s)
+  in runprogram e
