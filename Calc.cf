@@ -3,11 +3,8 @@ TDbl.   Type ::= "boy" ;
 
 PDef. Program ::= "300$" [Stm] ;
 
-Dec.    Decl ::= Type Ident ;
-
 terminator Stm "o`" ;
 
-SDecl.  Stm ::= Decl " is " ;
 SExec.  Stm ::= Exp ;
 SPrint. Stm1 ::= "cum" Exp ;
 

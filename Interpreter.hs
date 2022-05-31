@@ -11,6 +11,10 @@ instance Show RType where
     show (RTInteger x) = show x
     show (RTDouble x) = show x
 
+errorOrReturn :: Maybe RType -> RType
+errorOrReturn Nothing = error "No such variable"
+errorOrReturn (Just x) = x
+
 -- Overrides arithmetic
 gachiAdd :: RType -> RType -> RType
 gachiAdd (RTInteger x) (RTDouble y) = RTDouble ((fromIntegral x) + y)
@@ -38,28 +42,13 @@ gachidiv (RTDouble x) (RTDouble y) = RTDouble (x / y)
 
 
 -- Variable manipulation
--- TODO: add double
-addVar :: String -> Type -> RType -> Map String RType -> Map String RType
-addVar name TInt (RTInteger value) vars = Map.insert name (RTInteger value) vars
-addVar name TDbl (RTDouble value) vars = Map.insert name (RTDouble value) vars
-
-fetchVar :: String -> Map String RType -> RType
+fetchVar :: String -> Map String RType -> Maybe RType
 fetchVar name map = if Map.member name map
-          then (Map.findWithDefault (RTInteger 1) name map)
-          else error "No such variable"
-
-sameType :: RType -> RType -> Bool
-sameType (RTInteger _) (RTInteger _) = True
-sameType (RTDouble _) (RTDouble _) = True
-sameType _ _ = False
+          then Just (Map.findWithDefault (RTInteger 1) name map)
+          else Nothing
 
 updateVar :: String -> RType -> Map String RType -> Map String RType
-updateVar name new_val map = do
-    let current_var = fetchVar name map
-    if sameType current_var new_val
-        then Map.insert name new_val map
-        else
-            error "No such variable or wrong type"
+updateVar name new_val map = Map.insert name new_val map
 
 -- Invokes each statement of the program in turn
 runprogram :: Program -> IO String
@@ -68,7 +57,6 @@ runprogram (PDef x) = do
     return "1"
 
 -- Processes each statement by invoking expression processing
--- TODO: fix returns of updated variables
 runstatement :: [Stm] -> Map String RType -> IO (Map String RType)
 runstatement (x:xs) vars = case x of
   SExec y -> do
@@ -81,11 +69,6 @@ runstatement (x:xs) vars = case x of
     putStrLn $ show result
     new_new_vars <- runstatement xs new_vars
     return new_new_vars
--- TODO: Check that variable does not exist with same name
-  SDecl (Dec t (Ident name)) y -> do
-    (result, new_vars) <- runexpression y vars
-    new_new_vars <- runstatement xs (addVar name t result new_vars)
-    return new_new_vars
 runstatement [] vars = do
     putStr ""
     return vars
@@ -93,6 +76,10 @@ runstatement [] vars = do
 -- Processes each experssion
 runexpression :: Exp -> Map String RType -> IO (RType, Map String RType)
 runexpression x vars = case x of 
+  EAss (Ident ident) exp -> do
+      (res, new_vars) <- runexpression exp vars
+      let new_new_vars = updateVar ident res new_vars
+      return $ (res, new_new_vars)
   EAdd exp0 exp -> do
       (e0, e0vars) <- runexpression exp0 vars
       (e1, e1vars) <- runexpression exp e0vars
@@ -114,8 +101,4 @@ runexpression x vars = case x of
   EDbl n -> do
       return $ ((RTDouble n), vars)
   EVar (Ident ident) -> do
-      return $ (fetchVar ident vars, vars)
-  EAss (Ident ident) exp -> do
-      (res, new_vars) <- runexpression exp vars
-      let new_new_vars = updateVar ident res new_vars
-      return $ (res, new_new_vars)
+      return $ (errorOrReturn (fetchVar ident vars), vars)
