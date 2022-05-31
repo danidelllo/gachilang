@@ -39,11 +39,9 @@ gachidiv (RTDouble x) (RTDouble y) = RTDouble (x / y)
 
 -- Variable manipulation
 -- TODO: add double
-addVar :: String -> Type -> Maybe RType -> Map String RType -> Map String RType
-addVar name TInt Nothing vars = Map.insert name (RTInteger 0) vars
-addVar name TDbl Nothing vars = Map.insert name (RTDouble 0.0) vars
-addVar name TInt (Just (RTInteger value)) vars = Map.insert name (RTInteger value) vars
-addVar name TDbl (Just (RTDouble value)) vars = Map.insert name (RTDouble value) vars
+addVar :: String -> Type -> RType -> Map String RType -> Map String RType
+addVar name TInt (RTInteger value) vars = Map.insert name (RTInteger value) vars
+addVar name TDbl (RTDouble value) vars = Map.insert name (RTDouble value) vars
 
 fetchVar :: String -> Map String RType -> RType
 fetchVar name map = if Map.member name map
@@ -83,9 +81,11 @@ runstatement (x:xs) vars = case x of
     putStrLn $ show result
     new_new_vars <- runstatement xs new_vars
     return new_new_vars
-  SDecl (Dec t (Ident name)) -> do
-    new_vars <- runstatement xs (addVar name t Nothing vars)
-    return new_vars
+-- TODO: Check that variable does not exist with same name
+  SDecl (Dec t (Ident name)) y -> do
+    (result, new_vars) <- runexpression y vars
+    new_new_vars <- runstatement xs (addVar name t result new_vars)
+    return new_new_vars
 runstatement [] vars = do
     putStr ""
     return vars
