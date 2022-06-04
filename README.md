@@ -6,14 +6,12 @@ Sample gachilang program:
 ```
 300$
 
-cum 1 + 2 * 3 o`
+cum 1 and 2 fucking 3 o`
 
-gay billy o`
-pride vanh o`
-billy = 1337 o`
-vanh = 2.28 o`
+billy is 1337 o`
+vanh is 2.28 o`
 
-cum billy + vanh o`
+cum billy and vanh o`
 ```
 
 More info to be added to [wiki](https://github.com/danidelllo/gachilang/wiki) soon
